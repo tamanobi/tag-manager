@@ -1,0 +1,7 @@
+{
+  "name": "tag-manager",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Yasu <yasu@pixiv.co.jp>",
+  "license": "MIT"
+}
