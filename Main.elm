@@ -47,7 +47,7 @@ type Msg
     | Submit
     | InputCategoryLabel CategoryModel String
     | AddCategoryLabel CategoryModel
-    | DeleteLabel CategoryModel String
+    | DeleteCategoryLabel CategoryModel String
 
 
 defaultModel : Model
@@ -105,7 +105,7 @@ viewCategory category =
                     (\label ->
                         li []
                             [ text label
-                            , button [ onClick (DeleteLabel category label) ] [ text "x" ]
+                            , button [ onClick (DeleteCategoryLabel category label) ] [ text "x" ]
                             ]
                     )
                     category.labels
@@ -268,7 +268,7 @@ update msg model =
             in
             ( { model | categories = new :: rest }, Cmd.none )
 
-        DeleteLabel category targetLabel ->
+        DeleteCategoryLabel category targetLabel ->
             let
                 new =
                     { category | labels = List.filter (\label -> label /= targetLabel) category.labels }
