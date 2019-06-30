@@ -47,6 +47,7 @@ type Msg
     | Submit
     | LabelInput CategoryModel String
     | AddLabel CategoryModel
+    | DeleteLabel CategoryModel String
 
 
 defaultModel : Model
@@ -83,7 +84,7 @@ view model =
 viewCategory : CategoryModel -> Html Msg
 viewCategory category =
     let
-        list =
+        adding =
             li []
                 [ input
                     [ value category.input
@@ -92,7 +93,17 @@ viewCategory category =
                     []
                 , button [ onClick (AddLabel category) ] [ text "add label" ]
                 ]
-                :: List.map (\label -> li [] [ text label ]) category.labels
+
+        list =
+            adding
+                :: List.map
+                    (\label ->
+                        li []
+                            [ text label
+                            , button [ onClick (DeleteLabel category label) ] [ text "x" ]
+                            ]
+                    )
+                    category.labels
     in
     div []
         [ h1 [] [ text category.name ]
@@ -241,6 +252,16 @@ update msg model =
             let
                 new =
                     { category | input = "", labels = category.input :: category.labels }
+
+                rest =
+                    List.filter (\categoryModel -> categoryModel.name /= category.name) model.categories
+            in
+            ( { model | categories = new :: rest }, Cmd.none )
+
+        DeleteLabel category targetLabel ->
+            let
+                new =
+                    { category | labels = List.filter (\label -> label /= targetLabel) category.labels }
 
                 rest =
                     List.filter (\categoryModel -> categoryModel.name /= category.name) model.categories
