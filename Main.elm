@@ -35,6 +35,7 @@ type alias Model =
     , input : String
     , errorMessage : List String
     , tags : List String
+    , inputCategory : String
     , categories : List CategoryModel
     }
 
@@ -48,6 +49,9 @@ type Msg
     | InputCategoryLabel CategoryModel String
     | AddCategoryLabel CategoryModel
     | DeleteCategoryLabel CategoryModel String
+    | DeleteCategory CategoryModel
+    | InputCategory String
+    | AddCategory
 
 
 defaultModel : Model
@@ -56,14 +60,15 @@ defaultModel =
     , input = ""
     , errorMessage = []
     , tags = []
-    , categories = [ defaultCategoryModel ]
+    , inputCategory = ""
+    , categories = [ defaultCategoryModel, { input = "", name = "ジャンル", labels = [ "美少女", "ファンタジー" ] } ]
     }
 
 
 defaultCategoryModel =
     { input = ""
-    , name = "default"
-    , labels = [ "test" ]
+    , name = "作品名"
+    , labels = [ "魔法少女まどか☆マギカ" ]
     }
 
 
@@ -77,13 +82,37 @@ view model =
     div []
         [ viewInput model
         , viewErrorMessage model.errorMessage
+        , viewCategories model
         , div [] (List.map viewCategory model.categories)
         ]
 
 
-viewCategories : List CategoryModel -> Html Msg
-viewCategories categories =
-    ul [] (List.map (\category -> li [] [ text category.name ]) categories)
+
+{- categoryを登録する -}
+
+
+categoryForm : Model -> Html Msg
+categoryForm model =
+    li []
+        [ input [ value model.inputCategory, onInput InputCategory ] []
+        , button [ onClick AddCategory ] [ text "add" ]
+        ]
+
+
+viewCategories : Model -> Html Msg
+viewCategories model =
+    div []
+        [ h1 [] [ text "カテゴリ一覧" ]
+        , ul [] (categoryForm model :: List.map viewCategorySimple model.categories)
+        ]
+
+
+viewCategorySimple : CategoryModel -> Html Msg
+viewCategorySimple category =
+    li []
+        [ text (category.name ++ "(" ++ String.fromInt (List.length category.labels) ++ ")")
+        , button [ onClick (DeleteCategory category) ] [ text "x" ]
+        ]
 
 
 viewCategory : CategoryModel -> Html Msg
@@ -277,6 +306,15 @@ update msg model =
                     removeCategoryByName category.name model.categories
             in
             ( { model | categories = new :: rest }, Cmd.none )
+
+        DeleteCategory category ->
+            ( { model | categories = removeCategoryByName category.name model.categories }, Cmd.none )
+
+        InputCategory name ->
+            ( { model | inputCategory = name }, Cmd.none )
+
+        AddCategory ->
+            ( { model | categories = { defaultCategoryModel | name = model.inputCategory } :: model.categories }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
