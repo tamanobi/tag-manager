@@ -23,8 +23,30 @@ type InputMode
     | Single
 
 
+type alias CategoryModel =
+    { input : String
+    , name : String
+    , labels : List String
+    }
+
+
 type alias Model =
-    { inputMode : InputMode, input : String, errorMessage : List String, tags : List Tag }
+    { inputMode : InputMode
+    , input : String
+    , errorMessage : List String
+    , tags : List String
+    , categories : List CategoryModel
+    }
+
+
+type Msg
+    = Input String
+    | ChangeMode InputMode
+    | Delete String
+    | AddMultiple
+    | Submit
+    | LabelInput CategoryModel String
+    | AddLabel CategoryModel
 
 
 defaultModel : Model
@@ -33,6 +55,14 @@ defaultModel =
     , input = ""
     , errorMessage = []
     , tags = []
+    , categories = [ defaultCategoryModel ]
+    }
+
+
+defaultCategoryModel =
+    { input = ""
+    , name = "default"
+    , labels = [ "test" ]
     }
 
 
@@ -46,7 +76,35 @@ view model =
     div []
         [ viewInput model
         , viewErrorMessage model.errorMessage
-        , ul [] (List.map (\tag -> li [] [ text tag ]) model.tags)
+        , div [] (List.map viewCategory model.categories)
+        ]
+
+
+viewCategory : CategoryModel -> Html Msg
+viewCategory category =
+    let
+        list =
+            li []
+                [ input
+                    [ value category.input
+                    , onInput (LabelInput category)
+                    ]
+                    []
+                , button [ onClick (AddLabel category) ] [ text "add label" ]
+                ]
+                :: List.map (\label -> li [] [ text label ]) category.labels
+    in
+    div []
+        [ h1 [] [ text category.name ]
+        , ul [] list
+        ]
+
+
+viewTags : List String -> Html Msg
+viewTags tags =
+    div []
+        [ h1 [] [ text "Tags" ]
+        , ul [] (List.map (\tag -> li [] [ text tag ]) tags)
         ]
 
 
@@ -134,14 +192,6 @@ viewErrorMessage messages =
         div [] (List.map (\x -> text x) messages)
 
 
-type Msg
-    = Input String
-    | ChangeMode InputMode
-    | Delete String
-    | AddMultiple
-    | Submit
-
-
 type alias Tag =
     String
 
@@ -176,6 +226,26 @@ update msg model =
 
         ChangeMode mode ->
             ( { model | inputMode = mode }, Cmd.none )
+
+        LabelInput category label ->
+            let
+                new =
+                    { category | input = label }
+
+                rest =
+                    List.filter (\categoryModel -> categoryModel.name /= category.name) model.categories
+            in
+            ( { model | categories = new :: rest }, Cmd.none )
+
+        AddLabel category ->
+            let
+                new =
+                    { category | input = "", labels = category.input :: category.labels }
+
+                rest =
+                    List.filter (\categoryModel -> categoryModel.name /= category.name) model.categories
+            in
+            ( { model | categories = new :: rest }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
