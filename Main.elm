@@ -34,6 +34,7 @@ type alias Model =
     { inputMode : InputMode
     , input : String
     , errorMessage : List String
+    , inputTag : String
     , tags : List String
     , inputCategory : String
     , categories : List CategoryModel
@@ -52,6 +53,9 @@ type Msg
     | DeleteCategory CategoryModel
     | InputCategory String
     | AddCategory
+    | InputTag String
+    | AddTag
+    | DeleteTag String
 
 
 defaultModel : Model
@@ -59,7 +63,8 @@ defaultModel =
     { inputMode = Single
     , input = ""
     , errorMessage = []
-    , tags = []
+    , inputTag = ""
+    , tags = [ "鹿目まどか", "佐倉杏子", "能美クドリャフカ" ]
     , inputCategory = ""
     , categories = [ defaultCategoryModel, { input = "", name = "ジャンル", labels = [ "美少女", "ファンタジー" ] } ]
     }
@@ -68,7 +73,7 @@ defaultModel =
 defaultCategoryModel =
     { input = ""
     , name = "作品名"
-    , labels = [ "魔法少女まどか☆マギカ" ]
+    , labels = [ "魔法少女まどか☆マギカ", "リトルバスターズ！" ]
     }
 
 
@@ -82,8 +87,17 @@ view model =
     div []
         [ viewInput model
         , viewErrorMessage model.errorMessage
+        , viewTags model
         , viewCategories model
         , div [] (List.map viewCategory model.categories)
+        ]
+
+
+addingForm : String -> (String -> Msg) -> Msg -> Html Msg
+addingForm bind inputMsg clickMsg =
+    li []
+        [ input [ value bind, onInput inputMsg ] []
+        , button [ onClick clickMsg ] [ text "add" ]
         ]
 
 
@@ -145,11 +159,26 @@ viewCategory category =
         ]
 
 
-viewTags : List String -> Html Msg
-viewTags tags =
+viewTags : Model -> Html Msg
+viewTags model =
+    let
+        form =
+            addingForm model.inputTag InputTag AddTag
+
+        list =
+            form :: List.map viewTag model.tags
+    in
     div []
-        [ h1 [] [ text "Tags" ]
-        , ul [] (List.map (\tag -> li [] [ text tag ]) tags)
+        [ h1 [] [ text "タグ一覧" ]
+        , ul [] list
+        ]
+
+
+viewTag : String -> Html Msg
+viewTag tag =
+    li []
+        [ text tag
+        , button [ onClick (DeleteTag tag) ] [ text "x" ]
         ]
 
 
@@ -250,6 +279,11 @@ toTags s =
     List.filter (\x -> String.isEmpty x) (String.split "\n" s)
 
 
+removeByName : String -> List { b | name : String } -> List { b | name : String }
+removeByName name list =
+    List.filter (\v -> v.name /= name) list
+
+
 removeCategoryByName : String -> List CategoryModel -> List CategoryModel
 removeCategoryByName name categories =
     List.filter (\categoryModel -> categoryModel.name /= name) categories
@@ -315,6 +349,15 @@ update msg model =
 
         AddCategory ->
             ( { model | categories = { defaultCategoryModel | name = model.inputCategory } :: model.categories }, Cmd.none )
+
+        InputTag tag ->
+            ( { model | inputTag = tag }, Cmd.none )
+
+        AddTag ->
+            ( { model | tags = model.inputTag :: model.tags }, Cmd.none )
+
+        DeleteTag tag ->
+            ( { model | tags = List.filter (\t -> t /= tag) model.tags }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
