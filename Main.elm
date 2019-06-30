@@ -216,6 +216,11 @@ toTags s =
     List.filter (\x -> String.isEmpty x) (String.split "\n" s)
 
 
+removeCategoryByName : String -> List CategoryModel -> List CategoryModel
+removeCategoryByName name categories =
+    List.filter (\categoryModel -> categoryModel.name /= name) categories
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -244,7 +249,7 @@ update msg model =
                     { category | input = label }
 
                 rest =
-                    List.filter (\categoryModel -> categoryModel.name /= category.name) model.categories
+                    removeCategoryByName category.name model.categories
             in
             ( { model | categories = new :: rest }, Cmd.none )
 
@@ -254,7 +259,7 @@ update msg model =
                     { category | input = "", labels = category.input :: category.labels }
 
                 rest =
-                    List.filter (\categoryModel -> categoryModel.name /= category.name) model.categories
+                    removeCategoryByName category.name model.categories
             in
             ( { model | categories = new :: rest }, Cmd.none )
 
@@ -264,7 +269,7 @@ update msg model =
                     { category | labels = List.filter (\label -> label /= targetLabel) category.labels }
 
                 rest =
-                    List.filter (\categoryModel -> categoryModel.name /= category.name) model.categories
+                    removeCategoryByName category.name model.categories
             in
             ( { model | categories = new :: rest }, Cmd.none )
 
