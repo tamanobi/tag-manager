@@ -46,7 +46,7 @@ type Msg
     | AddMultiple
     | Submit
     | InputCategoryLabel CategoryModel String
-    | AddLabel CategoryModel
+    | AddCategoryLabel CategoryModel
     | DeleteLabel CategoryModel String
 
 
@@ -96,7 +96,7 @@ viewCategory category =
                     , onInput (InputCategoryLabel category)
                     ]
                     []
-                , button [ onClick (AddLabel category) ] [ text "add label" ]
+                , button [ onClick (AddCategoryLabel category) ] [ text "add label" ]
                 ]
 
         list =
@@ -258,7 +258,7 @@ update msg model =
             in
             ( { model | categories = new :: rest }, Cmd.none )
 
-        AddLabel category ->
+        AddCategoryLabel category ->
             let
                 new =
                     { category | input = "", labels = category.input :: category.labels }
