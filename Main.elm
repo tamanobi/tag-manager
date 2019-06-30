@@ -201,10 +201,6 @@ type alias RawMultipleInput =
 
 toTags : RawMultipleInput -> List Tag
 toTags s =
-    let
-        _ =
-            Debug.log "あああああ"
-    in
     String.split "\n" s
 
 
