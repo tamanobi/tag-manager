@@ -39,3 +39,5 @@ Temporary Items
 # End of https://www.gitignore.io/api/elm,macos
 
 .cache
+node_modules
+*.js.map
