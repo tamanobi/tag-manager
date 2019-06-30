@@ -31,19 +31,15 @@ defaultPerson =
     }
 
 
-type alias ErrorMessage =
-    Maybe String
-
-
 type alias Model =
-    { input : String, persons : List Person, errorMessage : ErrorMessage }
+    { input : String, persons : List Person, errorMessage : List String }
 
 
 defaultModel : Model
 defaultModel =
     { input = ""
     , persons = [ defaultPerson, defaultPerson ]
-    , errorMessage = Nothing
+    , errorMessage = []
     }
 
 
@@ -58,7 +54,7 @@ view model =
         [ viewErrorMessage model.errorMessage
         , Html.form [ onSubmit Submit ]
             [ input [ value model.input, onInput Input ] []
-            , button [ disabled (canSubmit model) ] [ text "submit" ]
+            , button [ disabled (not (canSubmit model)) ] [ text "submit" ]
             ]
         , ul [] (List.map viewPerson model.persons)
         ]
@@ -67,19 +63,35 @@ view model =
 emptyRule : Rule
 emptyRule model =
     if model.input |> String.isEmpty then
-        Ok ""
+        Err "empty"
 
     else
-        Err "empty"
+        Ok ""
 
 
 duplicatedRule : Rule
 duplicatedRule model =
     if model.persons |> duplicatedEntry model.input then
+        Err "重複している"
+
+    else
+        Ok ""
+
+
+forbiddenWordRule model =
+    if not (String.contains "password" model.input) then
         Ok ""
 
     else
-        Err ""
+        Err "許されない文字列"
+
+
+tooLongRule model =
+    if String.length model.input > 4 then
+        Err "長過ぎる"
+
+    else
+        Ok ""
 
 
 type alias Rule =
@@ -88,7 +100,7 @@ type alias Rule =
 
 rules : List Rule
 rules =
-    [ duplicatedRule, emptyRule ]
+    [ duplicatedRule, emptyRule, forbiddenWordRule, tooLongRule ]
 
 
 isOk : Result String String -> Bool
@@ -101,14 +113,25 @@ isOk r =
             False
 
 
+getErrors : List (Result String String) -> List String
+getErrors results =
+    List.filter (\x -> x /= "")
+        (List.map
+            (\x ->
+                case x of
+                    Ok _ ->
+                        ""
+
+                    Err m ->
+                        m
+            )
+            results
+        )
+
+
 canSubmit : Model -> Bool
 canSubmit model =
-    List.foldl (||) False (List.map (\func -> (model |> func) |> isOk) rules)
-
-
-validate : Bool
-validate =
-    True
+    List.foldl (&&) True (List.map (\func -> (model |> func) |> isOk) rules)
 
 
 duplicatedEntry : String -> List Person -> Bool
@@ -116,14 +139,13 @@ duplicatedEntry name persons =
     List.any (\x -> x.name == name) persons
 
 
-viewErrorMessage : ErrorMessage -> Html msg
-viewErrorMessage errorMessage =
-    case errorMessage of
-        Just m ->
-            div [] [ text m ]
+viewErrorMessage : List String -> Html msg
+viewErrorMessage messages =
+    if messages |> List.isEmpty then
+        div [] []
 
-        Nothing ->
-            div [] []
+    else
+        div [] (List.map (\x -> text x) messages)
 
 
 viewPerson : Person -> Html msg
@@ -140,11 +162,11 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Input str ->
-            if {model|input = str} |> duplicatedRule |> isOk then
-                ( { model | input = str, errorMessage = Just "すでに登録されている" }, Cmd.none )
-
-            else
-                ( { model | input = str, errorMessage = Nothing }, Cmd.none )
+            let
+                new =
+                    { model | input = str }
+            in
+            ( { model | input = str, errorMessage = getErrors (List.map (\func -> new |> func) rules) }, Cmd.none )
 
         Submit ->
             ( { model | input = "", persons = { defaultPerson | name = model.input } :: model.persons }, Cmd.none )
