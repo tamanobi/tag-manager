@@ -18,33 +18,19 @@ main =
         }
 
 
-type alias Person =
-    { name : String
-    , age : Maybe Int
-    }
-
-
-defaultPerson : Person
-defaultPerson =
-    { name = "default"
-    , age = Nothing
-    }
-
-
 type InputMode
     = Multiple
     | Single
 
 
 type alias Model =
-    { inputMode : InputMode, input : String, persons : List Person, errorMessage : List String, tags : List Tag }
+    { inputMode : InputMode, input : String, errorMessage : List String, tags : List Tag }
 
 
 defaultModel : Model
 defaultModel =
     { inputMode = Single
     , input = ""
-    , persons = [ defaultPerson, defaultPerson ]
     , errorMessage = []
     , tags = []
     }
@@ -60,7 +46,6 @@ view model =
     div []
         [ viewInput model
         , viewErrorMessage model.errorMessage
-        , ul [] (List.map viewPerson model.persons)
         , ul [] (List.map (\tag -> li [] [ text tag ]) model.tags)
         ]
 
@@ -100,30 +85,13 @@ emptyRule model =
         Ok ""
 
 
-duplicatedRule : Rule
-duplicatedRule model =
-    if model.persons |> duplicatedEntry model.input then
-        Err "重複している"
-
-    else
-        Ok ""
-
-
-forbiddenWordRule model =
-    if not (String.contains "password" model.input) then
-        Ok ""
-
-    else
-        Err "許されない文字列"
-
-
 type alias Rule =
     Model -> Result String String
 
 
 rules : List Rule
 rules =
-    [ duplicatedRule, emptyRule, forbiddenWordRule ]
+    [ emptyRule ]
 
 
 isOk : Result String String -> Bool
@@ -157,11 +125,6 @@ canSubmit model =
     List.foldl (&&) True (List.map (\func -> (model |> func) |> isOk) rules)
 
 
-duplicatedEntry : String -> List Person -> Bool
-duplicatedEntry name persons =
-    List.any (\x -> x.name == name) persons
-
-
 viewErrorMessage : List String -> Html msg
 viewErrorMessage messages =
     if messages |> List.isEmpty then
@@ -171,24 +134,12 @@ viewErrorMessage messages =
         div [] (List.map (\x -> text x) messages)
 
 
-viewPerson : Person -> Html Msg
-viewPerson person =
-    li []
-        [ text (person.name ++ ":" ++ (person.age |> Maybe.withDefault 0 |> String.fromInt))
-        , button [ onClick (Delete person) ] [ text "x" ]
-        ]
-
-
 type Msg
     = Input String
     | ChangeMode InputMode
-    | Delete Person
+    | Delete String
     | AddMultiple
     | Submit
-
-
-deleteByName name persons =
-    List.filter (\x -> x.name /= name) persons
 
 
 type alias Tag =
@@ -215,10 +166,10 @@ update msg model =
             ( { model | input = str, errorMessage = getErrors (List.map (\func -> new |> func) rules) }, Cmd.none )
 
         Submit ->
-            ( { model | input = "", persons = { defaultPerson | name = model.input } :: model.persons }, Cmd.none )
+            ( { model | input = "" }, Cmd.none )
 
-        Delete person ->
-            ( { model | persons = deleteByName person.name model.persons }, Cmd.none )
+        Delete str ->
+            ( model, Cmd.none )
 
         AddMultiple ->
             ( { model | tags = toTags model.input }, Cmd.none )
