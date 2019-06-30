@@ -81,6 +81,11 @@ view model =
         ]
 
 
+viewCategories : List CategoryModel -> Html Msg
+viewCategories categories =
+    ul [] (List.map (\category -> li [] [ text category.name ]) categories)
+
+
 viewCategory : CategoryModel -> Html Msg
 viewCategory category =
     let
@@ -106,7 +111,7 @@ viewCategory category =
                     category.labels
     in
     div []
-        [ h1 [] [ text category.name ]
+        [ h1 [] [ text (String.concat [ category.name, "(", String.fromInt (List.length category.labels), ")" ]) ]
         , ul [] list
         ]
 
