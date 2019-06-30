@@ -201,7 +201,7 @@ type alias RawMultipleInput =
 
 toTags : RawMultipleInput -> List Tag
 toTags s =
-    String.split "\n" s
+    List.filter (\x -> String.isEmpty x) (String.split "\n" s)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
