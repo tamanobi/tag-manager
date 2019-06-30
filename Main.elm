@@ -3,7 +3,7 @@ module Main exposing (Model, init, main, view)
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput, onSubmit)
+import Html.Events exposing (onClick, onInput)
 import Result exposing (..)
 import Set exposing (Set)
 
@@ -51,11 +51,12 @@ init _ =
 view : Model -> Html Msg
 view model =
     div []
-        [ viewErrorMessage model.errorMessage
-        , Html.form [ onSubmit Submit ]
+        [ div [] [ textarea [] [], button [] [text "add"] ]
+        , div []
             [ input [ value model.input, onInput Input ] []
-            , button [ disabled (not (canSubmit model)) ] [ text "submit" ]
+            , button [ disabled (not (canSubmit model)), onClick Submit ] [ text "submit" ]
             ]
+        , viewErrorMessage model.errorMessage
         , ul [] (List.map viewPerson model.persons)
         ]
 
@@ -86,21 +87,13 @@ forbiddenWordRule model =
         Err "許されない文字列"
 
 
-tooLongRule model =
-    if String.length model.input > 4 then
-        Err "長過ぎる"
-
-    else
-        Ok ""
-
-
 type alias Rule =
     Model -> Result String String
 
 
 rules : List Rule
 rules =
-    [ duplicatedRule, emptyRule, forbiddenWordRule, tooLongRule ]
+    [ duplicatedRule, emptyRule, forbiddenWordRule ]
 
 
 isOk : Result String String -> Bool
@@ -148,14 +141,22 @@ viewErrorMessage messages =
         div [] (List.map (\x -> text x) messages)
 
 
-viewPerson : Person -> Html msg
+viewPerson : Person -> Html Msg
 viewPerson person =
-    li [] [ text (person.name ++ ":" ++ (person.age |> Maybe.withDefault 0 |> String.fromInt)) ]
+    li []
+        [ text (person.name ++ ":" ++ (person.age |> Maybe.withDefault 0 |> String.fromInt))
+        , button [ onClick (Delete person) ] [ text "x" ]
+        ]
 
 
 type Msg
     = Input String
+    | Delete Person
     | Submit
+
+
+deleteByName name persons =
+    List.filter (\x -> x.name /= name) persons
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -170,6 +171,9 @@ update msg model =
 
         Submit ->
             ( { model | input = "", persons = { defaultPerson | name = model.input } :: model.persons }, Cmd.none )
+
+        Delete person ->
+            ( { model | persons = deleteByName person.name model.persons }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
