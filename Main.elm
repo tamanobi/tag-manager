@@ -45,7 +45,7 @@ type Msg
     | Delete String
     | AddMultiple
     | Submit
-    | LabelInput CategoryModel String
+    | InputCategoryLabel CategoryModel String
     | AddLabel CategoryModel
     | DeleteLabel CategoryModel String
 
@@ -93,7 +93,7 @@ viewCategory category =
             li []
                 [ input
                     [ value category.input
-                    , onInput (LabelInput category)
+                    , onInput (InputCategoryLabel category)
                     ]
                     []
                 , button [ onClick (AddLabel category) ] [ text "add label" ]
@@ -248,7 +248,7 @@ update msg model =
         ChangeMode mode ->
             ( { model | inputMode = mode }, Cmd.none )
 
-        LabelInput category label ->
+        InputCategoryLabel category label ->
             let
                 new =
                     { category | input = label }
