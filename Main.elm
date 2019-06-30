@@ -30,6 +30,13 @@ type alias CategoryModel =
     }
 
 
+type alias Link =
+    { tag : String
+    , categoryName : String
+    , label : String
+    }
+
+
 type alias Model =
     { inputMode : InputMode
     , input : String
@@ -38,6 +45,7 @@ type alias Model =
     , tags : List String
     , inputCategory : String
     , categories : List CategoryModel
+    , links : List Link
     }
 
 
@@ -67,6 +75,7 @@ defaultModel =
     , tags = [ "鹿目まどか", "佐倉杏子", "能美クドリャフカ" ]
     , inputCategory = ""
     , categories = [ defaultCategoryModel, { input = "", name = "ジャンル", labels = [ "美少女", "ファンタジー" ] } ]
+    , links = [ { tag = "鹿目まどか", categoryName = "作品名", label = "魔法少女まどか☆マギカ" } ]
     }
 
 
@@ -90,6 +99,15 @@ view model =
         , viewTags model
         , viewCategories model
         , div [] (List.map viewCategory model.categories)
+        , viewLinks model
+        ]
+
+
+viewLinks : Model -> Html Msg
+viewLinks model =
+    div []
+        [ h1 [] [ text "リンク" ]
+        , ul [] (List.map (\link -> li [] [ text (link.tag ++ " -> " ++ link.label ++ "@" ++ link.categoryName) ]) model.links)
         ]
 
 
