@@ -190,11 +190,13 @@ viewCategory category =
                     [ value category.input
                     , onInput <|
                         InputCategoryLabel category
+                    , class "text-input"
                     ]
                     []
                 , button
                     [ onClick <|
                         AddCategoryLabel category
+                    , class "btn-blue"
                     ]
                     [ text "add label" ]
                 ]
@@ -261,6 +263,7 @@ viewInput model =
                 , input
                     [ value model.input
                     , onInput Input
+                    , class "text-input"
                     ]
                     []
                 , button
