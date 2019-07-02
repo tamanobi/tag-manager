@@ -70,6 +70,7 @@ type Msg
     | InputTag String
     | AddTag
     | DeleteTag String
+    | ChangePage Page
 
 
 defaultModel : Model
@@ -100,14 +101,27 @@ init _ =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ viewInput model
-        , viewErrorMessage model.errorMessage
-        , viewTags model
-        , viewCategories model
-        , div [] <| List.map viewCategory model.categories
-        , viewLinks model
-        ]
+    case model.page of
+        Top ->
+            div []
+                [ viewInput model
+                , viewErrorMessage model.errorMessage
+                , viewTags model
+                , viewCategories model
+                , div [] <| List.map viewCategory model.categories
+                , viewLinks model
+                ]
+
+        Tag s ->
+            div []
+                [ viewTags model
+                , button
+                    [ onClick <|
+                        ChangePage <|
+                            Top
+                    ]
+                    [ text "back to top" ]
+                ]
 
 
 viewLinks : Model -> Html Msg
@@ -223,7 +237,7 @@ viewTags model =
 viewTag : String -> Html Msg
 viewTag tag =
     li []
-        [ text tag
+        [ a [ onClick <| ChangePage <| Tag tag ] [ text tag ]
         , button [ onClick (DeleteTag tag) ] [ text "x" ]
         ]
 
@@ -424,6 +438,9 @@ update msg model =
 
         DeleteTag tag ->
             ( { model | tags = List.filter (\t -> t /= tag) model.tags }, Cmd.none )
+
+        ChangePage page ->
+            ( { model | page = page }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
