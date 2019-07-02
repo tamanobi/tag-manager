@@ -6,6 +6,11 @@
   "license": "MIT",
   "devDependencies": {
     "elm-hot": "^1.1.0",
-    "node-elm-compiler": "^5.0.3"
+    "node-elm-compiler": "^5.0.3",
+    "parcel-bundler": "^1.12.3"
+  },
+  "scripts" : {
+    "dev": "parcel index.html",
+    "build": "parcel build index.html"
   }
 }
