@@ -127,9 +127,12 @@ view model =
 viewLinks : Model -> Html Msg
 viewLinks model =
     div []
-        [ h1 [] [ text "リンク" ]
-        , ul [] <|
-            List.map (\link -> li [] [ text (link.tag ++ " -> " ++ link.label ++ "@" ++ link.categoryName) ]) model.links
+        [ table [] <|
+            th [] [ text "リンク" ]
+                :: (model.links
+                        |> List.map (\link -> text (link.tag ++ " -> " ++ link.label ++ "@" ++ link.categoryName))
+                        |> List.map (\x -> tr [] [ td [] [ x ] ])
+                   )
         ]
 
 
