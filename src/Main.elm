@@ -23,6 +23,11 @@ type InputMode
     | Single
 
 
+type Page
+    = Top
+    | Tag String
+
+
 type alias CategoryModel =
     { input : String
     , name : String
@@ -38,7 +43,8 @@ type alias Link =
 
 
 type alias Model =
-    { inputMode : InputMode
+    { page : Page
+    , inputMode : InputMode
     , input : String
     , errorMessage : List String
     , inputTag : String
@@ -68,7 +74,8 @@ type Msg
 
 defaultModel : Model
 defaultModel =
-    { inputMode = Single
+    { page = Top
+    , inputMode = Single
     , input = ""
     , errorMessage = []
     , inputTag = ""
