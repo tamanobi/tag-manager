@@ -150,10 +150,7 @@ addingForm bind inputMsg clickMsg =
 
 categoryForm : Model -> Html Msg
 categoryForm model =
-    li []
-        [ input [ value model.inputCategory, onInput InputCategory ] []
-        , button [ onClick AddCategory ] [ text "add" ]
-        ]
+    addingForm model.inputCategory InputCategory AddCategory
 
 
 viewCategories : Model -> Html Msg
@@ -181,25 +178,16 @@ viewCategorySimple category =
         ]
 
 
+categoryLabelForm : CategoryModel -> Html Msg
+categoryLabelForm category =
+    addingForm category.input (InputCategoryLabel category) (AddCategoryLabel category)
+
+
 viewCategory : CategoryModel -> Html Msg
 viewCategory category =
     let
         adding =
-            li []
-                [ input
-                    [ value category.input
-                    , onInput <|
-                        InputCategoryLabel category
-                    , class "text-input"
-                    ]
-                    []
-                , button
-                    [ onClick <|
-                        AddCategoryLabel category
-                    , class "btn-blue"
-                    ]
-                    [ text "add label" ]
-                ]
+            categoryLabelForm category
 
         list =
             adding
