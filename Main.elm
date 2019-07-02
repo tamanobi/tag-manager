@@ -98,7 +98,7 @@ view model =
         , viewErrorMessage model.errorMessage
         , viewTags model
         , viewCategories model
-        , div [] (List.map viewCategory model.categories)
+        , div [] <| List.map viewCategory model.categories
         , viewLinks model
         ]
 
@@ -107,7 +107,8 @@ viewLinks : Model -> Html Msg
 viewLinks model =
     div []
         [ h1 [] [ text "リンク" ]
-        , ul [] (List.map (\link -> li [] [ text (link.tag ++ " -> " ++ link.label ++ "@" ++ link.categoryName) ]) model.links)
+        , ul [] <|
+            List.map (\link -> li [] [ text (link.tag ++ " -> " ++ link.label ++ "@" ++ link.categoryName) ]) model.links
         ]
 
 
@@ -135,15 +136,24 @@ viewCategories : Model -> Html Msg
 viewCategories model =
     div []
         [ h1 [] [ text "カテゴリ一覧" ]
-        , ul [] (categoryForm model :: List.map viewCategorySimple model.categories)
+        , ul [] <| categoryForm model :: List.map viewCategorySimple model.categories
         ]
 
 
 viewCategorySimple : CategoryModel -> Html Msg
 viewCategorySimple category =
     li []
-        [ text (category.name ++ "(" ++ String.fromInt (List.length category.labels) ++ ")")
-        , button [ onClick (DeleteCategory category) ] [ text "x" ]
+        [ text
+            (category.name
+                ++ "("
+                ++ String.fromInt (List.length category.labels)
+                ++ ")"
+            )
+        , button
+            [ onClick <|
+                DeleteCategory category
+            ]
+            [ text "x" ]
         ]
 
 
@@ -154,10 +164,15 @@ viewCategory category =
             li []
                 [ input
                     [ value category.input
-                    , onInput (InputCategoryLabel category)
+                    , onInput <|
+                        InputCategoryLabel category
                     ]
                     []
-                , button [ onClick (AddCategoryLabel category) ] [ text "add label" ]
+                , button
+                    [ onClick <|
+                        AddCategoryLabel category
+                    ]
+                    [ text "add label" ]
                 ]
 
         list =
@@ -172,7 +187,16 @@ viewCategory category =
                     category.labels
     in
     div []
-        [ h1 [] [ text (String.concat [ category.name, "(", String.fromInt (List.length category.labels), ")" ]) ]
+        [ h1 []
+            [ text
+                (String.concat
+                    [ category.name
+                    , "("
+                    , String.fromInt (List.length category.labels)
+                    , ")"
+                    ]
+                )
+            ]
         , ul [] list
         ]
 
@@ -182,13 +206,10 @@ viewTags model =
     let
         form =
             addingForm model.inputTag InputTag AddTag
-
-        list =
-            form :: List.map viewTag model.tags
     in
     div []
         [ h1 [] [ text "タグ一覧" ]
-        , ul [] list
+        , ul [] <| form :: List.map viewTag model.tags
         ]
 
 
@@ -213,16 +234,32 @@ viewInput model =
         Single ->
             div []
                 [ viewChangingMode model
-                , input [ value model.input, onInput Input ] []
-                , button [ disabled (not (canSubmit model)), onClick Submit ] [ text "submit" ]
+                , input
+                    [ value model.input
+                    , onInput Input
+                    ]
+                    []
+                , button
+                    [ disabled (not (canSubmit model))
+                    , onClick Submit
+                    ]
+                    [ text "submit" ]
                 ]
 
 
 viewChangingMode : Model -> Html Msg
 viewChangingMode model =
     div []
-        [ button [ disabled (model.inputMode == Single), onClick (ChangeMode Single) ] [ text "single" ]
-        , button [ disabled (model.inputMode == Multiple), onClick (ChangeMode Multiple) ] [ text "multiple" ]
+        [ button
+            [ disabled (model.inputMode == Single)
+            , onClick (ChangeMode Single)
+            ]
+            [ text "single" ]
+        , button
+            [ disabled (model.inputMode == Multiple)
+            , onClick (ChangeMode Multiple)
+            ]
+            [ text "multiple" ]
         ]
 
 
@@ -256,8 +293,8 @@ isOk r =
 
 getErrors : List (Result String String) -> List String
 getErrors results =
-    List.filter (\x -> x /= "")
-        (List.map
+    List.filter (\x -> x /= "") <|
+        List.map
             (\x ->
                 case x of
                     Ok _ ->
@@ -267,12 +304,11 @@ getErrors results =
                         m
             )
             results
-        )
 
 
 canSubmit : Model -> Bool
 canSubmit model =
-    List.foldl (&&) True (List.map (\func -> (model |> func) |> isOk) rules)
+    List.foldl (&&) True <| List.map (\func -> (model |> func) |> isOk) rules
 
 
 viewErrorMessage : List String -> Html msg
@@ -281,7 +317,7 @@ viewErrorMessage messages =
         div [] []
 
     else
-        div [] (List.map (\x -> text x) messages)
+        div [] <| List.map (\x -> text x) messages
 
 
 type alias Tag =
@@ -294,7 +330,7 @@ type alias RawMultipleInput =
 
 toTags : RawMultipleInput -> List Tag
 toTags s =
-    List.filter (\x -> String.isEmpty x) (String.split "\n" s)
+    List.filter (\x -> String.isEmpty x) <| String.split "\n" s
 
 
 removeByName : String -> List { b | name : String } -> List { b | name : String }
@@ -315,7 +351,12 @@ update msg model =
                 new =
                     { model | input = str }
             in
-            ( { model | input = str, errorMessage = getErrors (List.map (\func -> new |> func) rules) }, Cmd.none )
+            ( { model
+                | input = str
+                , errorMessage = getErrors <| List.map (\func -> new |> func) rules
+              }
+            , Cmd.none
+            )
 
         Submit ->
             ( { model | input = "" }, Cmd.none )
