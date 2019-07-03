@@ -103,14 +103,7 @@ view : Model -> Html Msg
 view model =
     case model.page of
         Top ->
-            div []
-                [ viewInput model
-                , viewErrorMessage model.errorMessage
-                , viewTags model
-                , viewCategories model
-                , div [] <| List.map viewCategory model.categories
-                , viewLinks model
-                ]
+            viewTopPage model
 
         Tag s ->
             div []
@@ -122,6 +115,18 @@ view model =
                     ]
                     [ text "back to top" ]
                 ]
+
+
+viewTopPage : Model -> Html Msg
+viewTopPage model =
+    div []
+        [ viewInput model
+        , viewErrorMessage model.errorMessage
+        , viewTags model
+        , viewCategories model
+        , div [] <| List.map viewCategory model.categories
+        , viewLinks model
+        ]
 
 
 viewLinks : Model -> Html Msg
