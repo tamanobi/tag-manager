@@ -1,6 +1,7 @@
 module Main exposing (Model, init, main, view)
 
 import Browser
+import Category exposing (Category)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
@@ -107,10 +108,28 @@ view model =
 
         Tag s ->
             twoColumn <|
-                ( viewTags model
+                ( div []
+                    [ h1 [] [ text <| "タグ編集画面(" ++ s ++ ")" ]
+                    , h2 [] [ text "結びつけるカテゴリを選ぶ" ]
+                    , h3 [] [ text "あとでリネーム機能をつける" ]
+                    , h3 [] [ text "カテゴリ一覧" ]
+                    , table []
+                        [ thead []
+                            [ tr []
+                                [ td [] [ text "check" ]
+                                , td [] [ text "yyyyy" ]
+                                ]
+                            ]
+                        , tbody []
+                            [ tr []
+                                [ td [] [ input [ type_ "checkbox", checked True] [] ]
+                                , td [] [ text "dddd" ]
+                                ]
+                            ]
+                        ]
+                    ]
                 , div []
-                    [ viewTags model
-                    , button
+                    [ button
                         [ onClick <|
                             ChangePage <|
                                 Top
@@ -131,11 +150,9 @@ twoColumn ( left, right ) =
 viewTopPage : Model -> Html Msg
 viewTopPage model =
     div []
-        [ viewInput model
-        , viewErrorMessage model.errorMessage
+        [ viewErrorMessage model.errorMessage
         , viewTags model
         , viewCategories model
-        , div [] <| List.map viewCategory model.categories
         , viewLinks model
         ]
 
@@ -211,7 +228,8 @@ viewCategory category =
 viewTags : Model -> Html Msg
 viewTags { inputTag, tags } =
     div []
-        [ div [] <| inputTextAndButton inputTag InputTag AddTag
+        [ h1 [] [ text "タグ一覧" ]
+        , div [] <| inputTextAndButton inputTag InputTag AddTag
         , table []
             [ thead []
                 [ tr []
