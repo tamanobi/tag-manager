@@ -103,18 +103,29 @@ view : Model -> Html Msg
 view model =
     case model.page of
         Top ->
-            viewTopPage model
+            twoColumn <| ( viewTopPage model, div [] [] )
 
         Tag s ->
-            div []
-                [ viewTags model
-                , button
-                    [ onClick <|
-                        ChangePage <|
-                            Top
+            twoColumn <|
+                ( viewTags model
+                , div []
+                    [ viewTags model
+                    , button
+                        [ onClick <|
+                            ChangePage <|
+                                Top
+                        ]
+                        [ text "back to top" ]
                     ]
-                    [ text "back to top" ]
-                ]
+                )
+
+
+twoColumn : ( Html Msg, Html Msg ) -> Html Msg
+twoColumn ( left, right ) =
+    div [ class "wrap" ]
+        [ div [ class "left-column" ] [ left ]
+        , div [ class "right-column" ] [ right ]
+        ]
 
 
 viewTopPage : Model -> Html Msg
@@ -143,100 +154,110 @@ viewLinks model =
 
 addingForm : String -> (String -> Msg) -> Msg -> Html Msg
 addingForm bind inputMsg clickMsg =
-    li []
-        [ input [ value bind, onInput inputMsg ] []
-        , button [ onClick clickMsg ] [ text "add" ]
-        ]
+    li [] <|
+        inputTextAndButton
+            bind
+            inputMsg
+            clickMsg
 
 
-
-{- categoryを登録する -}
-
-
-categoryForm : Model -> Html Msg
-categoryForm model =
-    addingForm model.inputCategory InputCategory AddCategory
-
-
-viewCategories : Model -> Html Msg
-viewCategories model =
-    div []
-        [ h1 [] [ text "カテゴリ一覧" ]
-        , ul [] <| categoryForm model :: List.map viewCategorySimple model.categories
-        ]
-
-
-viewCategorySimple : CategoryModel -> Html Msg
-viewCategorySimple category =
-    li []
-        [ text
-            (category.name
-                ++ "("
-                ++ String.fromInt (List.length category.labels)
-                ++ ")"
-            )
-        , button
-            [ onClick <|
-                DeleteCategory category
-            ]
-            [ text "x" ]
-        ]
-
-
-categoryLabelForm : CategoryModel -> Html Msg
-categoryLabelForm category =
-    addingForm category.input (InputCategoryLabel category) (AddCategoryLabel category)
+inputTextAndButton : String -> (String -> Msg) -> Msg -> List (Html Msg)
+inputTextAndButton bind inputMsg clickMsg =
+    [ input [ value bind, onInput inputMsg, type_ "text" ] []
+    , button [ onClick clickMsg ] [ text "add" ]
+    ]
 
 
 viewCategory : CategoryModel -> Html Msg
 viewCategory category =
     let
-        adding =
-            categoryLabelForm category
+        display { name, labels } =
+            String.concat <|
+                [ category.name
+                , "("
+                , String.fromInt (List.length category.labels)
+                , ")"
+                ]
 
         list =
-            adding
-                :: List.map
-                    (\label ->
-                        li []
-                            [ text label
-                            , button [ onClick (DeleteCategoryLabel category label) ] [ text "x" ]
-                            ]
-                    )
-                    category.labels
+            List.map
+                (\label ->
+                    li []
+                        [ text label
+                        , button [ onClick (DeleteCategoryLabel category label) ] [ text "x" ]
+                        ]
+                )
+                category.labels
     in
     div []
         [ h1 []
-            [ text
-                (String.concat
-                    [ category.name
-                    , "("
-                    , String.fromInt (List.length category.labels)
-                    , ")"
-                    ]
-                )
+            [ text <| display category ]
+        , div [] <| inputTextAndButton category.input (InputCategoryLabel category) (AddCategoryLabel category)
+        , table []
+            [ thead [] [ td [] [ text "name" ], td [] [ text "action" ] ]
+            , tbody [] <|
+                List.map
+                    (\label ->
+                        tr []
+                            [ td [] [ text label ]
+                            , td [] [ button [ onClick <| DeleteCategoryLabel category label ] [ text "delete" ] ]
+                            ]
+                    )
+                    category.labels
             ]
-        , ul [] list
         ]
 
 
 viewTags : Model -> Html Msg
-viewTags model =
-    let
-        form =
-            addingForm model.inputTag InputTag AddTag
-    in
+viewTags { inputTag, tags } =
     div []
-        [ h1 [] [ text "タグ一覧" ]
-        , ul [] <| form :: List.map viewTag model.tags
+        [ div [] <| inputTextAndButton inputTag InputTag AddTag
+        , table []
+            [ thead []
+                [ tr []
+                    [ td [] [ text "tag" ]
+                    , td [] [ text "edit" ]
+                    , td [] [ text "delete" ]
+                    ]
+                ]
+            , tbody [] <|
+                List.map
+                    (\tag ->
+                        tr [] <|
+                            [ td [] [ a [ onClick <| ChangePage <| Tag tag ] [ text tag ] ]
+                            , td [] [ button [ onClick <| ChangePage <| Tag tag ] [ text "edit" ] ]
+                            , td [] [ button [ onClick <| DeleteTag tag ] [ text "delete" ] ]
+                            ]
+                    )
+                    tags
+            ]
         ]
 
 
-viewTag : String -> Html Msg
-viewTag tag =
-    li []
-        [ a [ onClick <| ChangePage <| Tag tag ] [ text tag ]
-        , button [ onClick (DeleteTag tag) ] [ text "x" ]
+viewCategories : Model -> Html Msg
+viewCategories { inputCategory, categories } =
+    div []
+        [ h1 [] [ text "カテゴリ一覧" ]
+        , div [] <| inputTextAndButton inputCategory InputCategory AddCategory
+        , table []
+            [ thead []
+                [ tr []
+                    [ td [] [ text "tag" ]
+                    , td [] [ text "edit" ]
+                    , td [] [ text "delete" ]
+                    ]
+                ]
+            , tbody [] <|
+                List.map
+                    (\category ->
+                        tr [] <|
+                            [ td [] [ text <| category.name ++ (List.length category.labels |> String.fromInt) ]
+                            , td [] [ button [] [ text "edit" ] ]
+                            , td [] [ button [] [ text "delete" ] ]
+                            ]
+                    )
+                    categories
+            ]
         ]
 
 
@@ -256,7 +277,7 @@ viewInput model =
                 , input
                     [ value model.input
                     , onInput Input
-                    , class "text-input"
+                    , type_ "text"
                     ]
                     []
                 , button

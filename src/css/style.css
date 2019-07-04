@@ -10,4 +10,17 @@
 .text-input:focus {
     @apply shadow-outline;
 }
+
+.wrap {
+    @apply flex flex-row-reverse flex-wrap;
+}
+
+.left-column {
+    @apply w-full w-3/4 p-4;
+}
+
+.right-column {
+    @apply w-full w-1/4 p-4;
+}
+
 @tailwind utilities;
