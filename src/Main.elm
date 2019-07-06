@@ -99,16 +99,18 @@ defaultCategoryModel =
     , labels = [ "魔法少女まどか☆マギカ", "リトルバスターズ！" ]
     }
 
+requestUrl : String -> String
+requestUrl path = "http://localhost:3000" ++ path
 
 initialRequest : Cmd Msg
 initialRequest =
     Cmd.batch
         [ Http.get
-            { url = "http://localhost:3000/tags"
+            { url = requestUrl "/tags"
             , expect = Http.expectJson GotTags tagDecoder
             }
         , Http.get
-            { url = "http://localhost:3000/groups"
+            { url = requestUrl "/groups"
             , expect = Http.expectJson GotCategories categoryDecoder
             }
         ]
