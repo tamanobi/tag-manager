@@ -7,13 +7,17 @@
   "devDependencies": {
     "autoprefixer": "^9.6.0",
     "elm-hot": "^1.1.0",
+    "jest": "^24.8.0",
+    "jest-puppeteer": "^4.2.0",
     "node-elm-compiler": "^5.0.3",
     "parcel-bundler": "^1.12.3",
     "postcss-modules": "^1.4.1",
+    "puppeteer": "^1.18.1",
     "tailwindcss": "^1.0.4"
   },
   "scripts": {
     "dev": "parcel index.html",
-    "build": "parcel build index.html"
+    "build": "parcel build index.html",
+    "test": "npx jest"
   }
 }
