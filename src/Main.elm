@@ -28,13 +28,19 @@ type InputMode
 
 type Page
     = Top
-    | Tag String
+    | PageTag String
 
 
 type alias CategoryModel =
     { input : String
     , name : String
     , labels : List String
+    }
+
+
+type alias Tag =
+    { id : String
+    , name : String
     }
 
 
@@ -51,7 +57,7 @@ type alias Model =
     , input : String
     , errorMessage : List String
     , inputTag : String
-    , tags : List String
+    , tags : List Tag
     , inputCategory : String
     , categories : List CategoryModel
     , links : List Link
@@ -74,8 +80,7 @@ type Msg
     | AddTag
     | DeleteTag String
     | ChangePage Page
-    | GetTags
-    | GotTags (Result Http.Error (List String))
+    | GotTags (Result Http.Error (List Tag))
     | GotCategories (Result Http.Error (List CategoryModel))
 
 
@@ -99,8 +104,11 @@ defaultCategoryModel =
     , labels = [ "魔法少女まどか☆マギカ", "リトルバスターズ！" ]
     }
 
+
 requestUrl : String -> String
-requestUrl path = "http://localhost:3000" ++ path
+requestUrl path =
+    "http://localhost:3000" ++ path
+
 
 initialRequest : Cmd Msg
 initialRequest =
@@ -129,7 +137,7 @@ view model =
         Top ->
             twoColumn <| ( viewTopPage model, div [] [] )
 
-        Tag s ->
+        PageTag s ->
             twoColumn <|
                 ( div []
                     [ h1 [] [ text <| "タグ編集画面(" ++ s ++ ")" ]
@@ -263,11 +271,11 @@ viewTags { inputTag, tags } =
                 ]
             , tbody [] <|
                 List.map
-                    (\tag ->
+                    (\{ name } ->
                         tr [] <|
-                            [ td [] [ a [ onClick <| ChangePage <| Tag tag ] [ text tag ] ]
-                            , td [] [ button [ onClick <| ChangePage <| Tag tag ] [ text "edit" ] ]
-                            , td [] [ button [ onClick <| DeleteTag tag ] [ text "delete" ] ]
+                            [ td [] [ a [ onClick <| ChangePage <| PageTag name ] [ text name ] ]
+                            , td [] [ button [ onClick <| ChangePage <| PageTag name ] [ text "edit" ] ]
+                            , td [] [ button [ onClick <| DeleteTag name ] [ text "delete" ] ]
                             ]
                     )
                     tags
@@ -402,17 +410,22 @@ viewErrorMessage messages =
         div [] <| List.map (\x -> text x) messages
 
 
-type alias Tag =
-    String
-
-
 type alias RawMultipleInput =
     String
 
 
+toTagFromString : String -> Tag
+toTagFromString str =
+    Tag "" str
+
+
 toTags : RawMultipleInput -> List Tag
 toTags s =
-    List.filter (\x -> String.isEmpty x) <| String.split "\n" s
+    let
+        tags =
+            s |> String.split "\n" |> List.filter (String.isEmpty >> not)
+    in
+    List.map toTagFromString tags
 
 
 removeByName : String -> List { b | name : String } -> List { b | name : String }
@@ -495,21 +508,13 @@ update msg model =
             ( { model | inputTag = tag }, Cmd.none )
 
         AddTag ->
-            ( { model | tags = model.inputTag :: model.tags }, Cmd.none )
+            ( { model | tags = toTagFromString model.inputTag :: model.tags }, Cmd.none )
 
         DeleteTag tag ->
-            ( { model | tags = List.filter (\t -> t /= tag) model.tags }, Cmd.none )
+            ( { model | tags = List.filter (\{ name } -> name /= tag) model.tags }, Cmd.none )
 
         ChangePage page ->
             ( { model | page = page }, Cmd.none )
-
-        GetTags ->
-            ( model
-            , Http.get
-                { url = "http://localhost:3000/tags"
-                , expect = Http.expectJson GotTags tagDecoder
-                }
-            )
 
         GotTags result ->
             case result of
@@ -528,10 +533,11 @@ update msg model =
                     ( { model | errorMessage = [ "http error" ] }, Cmd.none )
 
 
-tagDecoder : Decoder (List String)
 tagDecoder =
     Json.Decode.list <|
-        field "name" Json.Decode.string
+        Json.Decode.map2 Tag
+            (field "id" string)
+            (field "name" string)
 
 
 categoryDecoder =
