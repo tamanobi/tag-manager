@@ -5,6 +5,7 @@ import Category exposing (Category)
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import Http
 import Result exposing (..)
 import Set exposing (Set)
 
@@ -72,6 +73,8 @@ type Msg
     | AddTag
     | DeleteTag String
     | ChangePage Page
+    | GetTags
+    | GotTags (Result Http.Error String)
 
 
 defaultModel : Model
@@ -104,7 +107,7 @@ view : Model -> Html Msg
 view model =
     case model.page of
         Top ->
-            twoColumn <| ( viewTopPage model, div [] [] )
+            twoColumn <| ( viewTopPage model, div [] [ button [ onClick GetTags ] [ text "APIリクエスト" ] ] )
 
         Tag s ->
             twoColumn <|
@@ -122,7 +125,7 @@ view model =
                             ]
                         , tbody []
                             [ tr []
-                                [ td [] [ input [ type_ "checkbox", checked True] [] ]
+                                [ td [] [ input [ type_ "checkbox", checked True ] [] ]
                                 , td [] [ text "dddd" ]
                                 ]
                             ]
@@ -479,6 +482,22 @@ update msg model =
 
         ChangePage page ->
             ( { model | page = page }, Cmd.none )
+
+        GetTags ->
+            ( model
+            , Http.get
+                { url = "http://localhost:3000/tags"
+                , expect = Http.expectString GotTags
+                }
+            )
+
+        GotTags result ->
+            case result of
+                Ok str ->
+                    ( { model | errorMessage = [ str ] }, Cmd.none )
+
+                Err _ ->
+                    ( { model | errorMessage = [ "http error" ] }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
