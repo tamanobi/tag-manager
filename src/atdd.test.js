@@ -4,10 +4,10 @@ describe('トップページ', () => {
   });
 
   it('should contain "タグ一覧"', async () => {
-    expect(page).toMatch('タグ一覧')
+    await expect(page).toMatch('タグ一覧')
   });
 
   it('should contain "カテゴリ一覧"', async () => {
-    expect(page).toMatch('カテゴリ一覧')
+    await expect(page).toMatch('カテゴリ一覧')
   });
 });
