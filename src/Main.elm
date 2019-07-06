@@ -8,6 +8,7 @@ import Html.Events exposing (onClick, onInput)
 import Http
 import Result exposing (..)
 import Set exposing (Set)
+import Json.Decode exposing (Decoder, field, string)
 
 
 main : Program () Model Msg
