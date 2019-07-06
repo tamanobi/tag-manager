@@ -6,9 +6,9 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Http
+import Json.Decode exposing (Decoder, field, string)
 import Result exposing (..)
 import Set exposing (Set)
-import Json.Decode exposing (Decoder, field, string)
 
 
 main : Program () Model Msg
@@ -75,7 +75,8 @@ type Msg
     | DeleteTag String
     | ChangePage Page
     | GetTags
-    | GotTags (Result Http.Error String)
+    | GotTags (Result Http.Error (List String))
+    | GotCategories (Result Http.Error (List CategoryModel))
 
 
 defaultModel : Model
@@ -85,9 +86,9 @@ defaultModel =
     , input = ""
     , errorMessage = []
     , inputTag = ""
-    , tags = [ "鹿目まどか", "佐倉杏子", "能美クドリャフカ" ]
+    , tags = []
     , inputCategory = ""
-    , categories = [ defaultCategoryModel, { input = "", name = "ジャンル", labels = [ "美少女", "ファンタジー" ] } ]
+    , categories = []
     , links = [ { tag = "鹿目まどか", categoryName = "作品名", label = "魔法少女まどか☆マギカ" } ]
     }
 
@@ -99,9 +100,25 @@ defaultCategoryModel =
     }
 
 
-init : () -> ( Model, Cmd msg )
+initialRequest : Cmd Msg
+initialRequest =
+    Cmd.batch
+        [ Http.get
+            { url = "http://localhost:3000/tags"
+            , expect = Http.expectJson GotTags tagDecoder
+            }
+        , Http.get
+            { url = "http://localhost:3000/groups"
+            , expect = Http.expectJson GotCategories categoryDecoder
+            }
+        ]
+
+
+init : () -> ( Model, Cmd Msg )
 init _ =
-    ( defaultModel, Cmd.none )
+    ( defaultModel
+    , initialRequest
+    )
 
 
 view : Model -> Html Msg
@@ -488,17 +505,39 @@ update msg model =
             ( model
             , Http.get
                 { url = "http://localhost:3000/tags"
-                , expect = Http.expectString GotTags
+                , expect = Http.expectJson GotTags tagDecoder
                 }
             )
 
         GotTags result ->
             case result of
-                Ok str ->
-                    ( { model | errorMessage = [ str ] }, Cmd.none )
+                Ok tags ->
+                    ( { model | tags = tags }, Cmd.none )
 
                 Err _ ->
                     ( { model | errorMessage = [ "http error" ] }, Cmd.none )
+
+        GotCategories result ->
+            case result of
+                Ok categories ->
+                    ( { model | categories = categories }, Cmd.none )
+
+                Err _ ->
+                    ( { model | errorMessage = [ "http error" ] }, Cmd.none )
+
+
+tagDecoder : Decoder (List String)
+tagDecoder =
+    Json.Decode.list <|
+        field "name" Json.Decode.string
+
+
+categoryDecoder =
+    Json.Decode.list <|
+        Json.Decode.map3 CategoryModel
+            (Json.Decode.succeed "")
+            (field "name" string)
+            (Json.Decode.succeed [])
 
 
 subscriptions : Model -> Sub Msg
