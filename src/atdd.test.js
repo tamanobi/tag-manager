@@ -11,3 +11,11 @@ describe('トップページ', () => {
     await expect(page).toMatch('カテゴリ一覧')
   });
 });
+
+describe('トップページでのクリック', () => {
+  it('should move "タグ編集画面"', async () => {
+    const tag = '鹿目まどか'
+    await expect(page).toClick('a', { text: tag })
+    await expect(page).toMatch(`タグ編集画面(${tag})`)
+  });
+});
