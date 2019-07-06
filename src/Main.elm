@@ -127,7 +127,7 @@ view : Model -> Html Msg
 view model =
     case model.page of
         Top ->
-            twoColumn <| ( viewTopPage model, div [] [ button [ onClick GetTags ] [ text "APIリクエスト" ] ] )
+            twoColumn <| ( viewTopPage model, div [] [] )
 
         Tag s ->
             twoColumn <|
