@@ -85,6 +85,7 @@ type Msg
     | GotTags (Result Http.Error (List Tag))
     | GotCategories (Result Http.Error (List CategoryModel))
     | CreatedTag (Result Http.Error Tag)
+    | DeletedTag (Result Http.Error ())
 
 
 defaultModel : Model
@@ -278,7 +279,7 @@ viewTags { inputTag, tags } =
                         tr [] <|
                             [ td [] [ a [ onClick <| ChangePage <| PageTag name ] [ text <| name ++ id ] ]
                             , td [] [ button [ onClick <| ChangePage <| PageTag name ] [ text "edit" ] ]
-                            , td [] [ button [ onClick <| DeleteTag name ] [ text "delete" ] ]
+                            , td [] [ button [ onClick <| DeleteTag id ] [ text "delete" ] ]
                             ]
                     )
                     tags
@@ -528,8 +529,27 @@ update msg model =
                 }
             )
 
-        DeleteTag tag ->
-            ( { model | tags = List.filter (\{ name } -> name /= tag) model.tags }, Cmd.none )
+        DeleteTag targetId ->
+            ( { model | tags = List.filter (\{ id } -> id /= targetId) model.tags }
+            , Http.request
+                { method = "DELETE"
+                , headers = []
+                , timeout = Nothing
+                , tracker = Nothing
+                , url = requestUrl <| "/tags/" ++ targetId
+                , body =
+                    Http.jsonBody <|
+                        (\tag ->
+                            E.object
+                                [ ( "id", E.string <| Crypto.Hash.sha224 tag.name )
+                                , ( "name", E.string tag.name )
+                                ]
+                        )
+                        <|
+                            { id = "", name = model.inputTag }
+                , expect = Http.expectWhatever DeletedTag
+                }
+            )
 
         ChangePage page ->
             ( { model | page = page }, Cmd.none )
@@ -560,7 +580,10 @@ update msg model =
                     ( { model | tags = tag :: filteredTag }, Cmd.none )
 
                 Err error ->
-                    ( { model | errorMessage = [ Debug.toString error ] }, Cmd.none )
+                    ( { model | errorMessage = [ "http error" ] }, Cmd.none )
+        
+        DeletedTag _ ->
+            ( model, Cmd.none )
 
 
 tagDecoder : Decoder Tag
