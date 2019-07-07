@@ -2,11 +2,13 @@ module Main exposing (Model, init, main, view)
 
 import Browser
 import Category exposing (Category)
+import Crypto.Hash
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
 import Http
 import Json.Decode exposing (Decoder, field, string)
+import Json.Encode as E
 import Result exposing (..)
 import Set exposing (Set)
 
@@ -82,6 +84,7 @@ type Msg
     | ChangePage Page
     | GotTags (Result Http.Error (List Tag))
     | GotCategories (Result Http.Error (List CategoryModel))
+    | CreatedTag (Result Http.Error Tag)
 
 
 defaultModel : Model
@@ -115,7 +118,7 @@ initialRequest =
     Cmd.batch
         [ Http.get
             { url = requestUrl "/tags"
-            , expect = Http.expectJson GotTags tagDecoder
+            , expect = Http.expectJson GotTags tagsDecoder
             }
         , Http.get
             { url = requestUrl "/groups"
@@ -271,9 +274,9 @@ viewTags { inputTag, tags } =
                 ]
             , tbody [] <|
                 List.map
-                    (\{ name } ->
+                    (\{ id, name } ->
                         tr [] <|
-                            [ td [] [ a [ onClick <| ChangePage <| PageTag name ] [ text name ] ]
+                            [ td [] [ a [ onClick <| ChangePage <| PageTag name ] [ text <| name ++ id ] ]
                             , td [] [ button [ onClick <| ChangePage <| PageTag name ] [ text "edit" ] ]
                             , td [] [ button [ onClick <| DeleteTag name ] [ text "delete" ] ]
                             ]
@@ -508,7 +511,22 @@ update msg model =
             ( { model | inputTag = tag }, Cmd.none )
 
         AddTag ->
-            ( { model | tags = toTagFromString model.inputTag :: model.tags }, Cmd.none )
+            ( { model | tags = toTagFromString model.inputTag :: model.tags, inputTag = "" }
+            , Http.post
+                { url = requestUrl "/tags"
+                , body =
+                    Http.jsonBody <|
+                        (\tag ->
+                            E.object
+                                [ ( "id", E.string <| Crypto.Hash.sha224 tag.name )
+                                , ( "name", E.string tag.name )
+                                ]
+                        )
+                        <|
+                            { id = "", name = model.inputTag }
+                , expect = Http.expectJson CreatedTag tagDecoder
+                }
+            )
 
         DeleteTag tag ->
             ( { model | tags = List.filter (\{ name } -> name /= tag) model.tags }, Cmd.none )
@@ -532,8 +550,27 @@ update msg model =
                 Err _ ->
                     ( { model | errorMessage = [ "http error" ] }, Cmd.none )
 
+        CreatedTag result ->
+            case result of
+                Ok tag ->
+                    let
+                        filteredTag =
+                            model.tags |> List.filter (.name >> (/=) tag.name)
+                    in
+                    ( { model | tags = tag :: filteredTag }, Cmd.none )
 
+                Err error ->
+                    ( { model | errorMessage = [ Debug.toString error ] }, Cmd.none )
+
+
+tagDecoder : Decoder Tag
 tagDecoder =
+    Json.Decode.map2 Tag
+        (field "id" string)
+        (field "name" string)
+
+
+tagsDecoder =
     Json.Decode.list <|
         Json.Decode.map2 Tag
             (field "id" string)

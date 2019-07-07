@@ -1,48 +1,117 @@
 {
   "tags": [
-    { "id": "KANAME", "name": "鹿目まどか" },
-    { "id": "SAKURA", "name": "佐倉杏子" },
-    { "id": "NOUMI", "name": "能美クドリャフカ" }
+    {
+      "id": "KANAME",
+      "name": "鹿目まどか"
+    },
+    {
+      "id": "SAKURA",
+      "name": "佐倉杏子"
+    },
+    {
+      "id": "NOUMI",
+      "name": "能美クドリャフカ"
+    },
+    {
+      "id": "KANAME2",
+      "name": "鹿目まどか2"
+    },
+    {
+      "id": "d14a028c2a3a2bc9476102bb288234c415a2b01f828ea62ac5b3e42f",
+      "name": "お"
+    },
+    {
+      "id": "06c9f71496e24dec6acc44895648cf9ec40b5cebb7bc4858a3c69f25",
+      "name": "d"
+    },
+    {
+      "id": "23cf78ae34d5bb364aa47321d60aebaf209875cbb584f5b05d460c18",
+      "name": "zzzzzzzzzzzzzz"
+    }
   ],
   "groups": [
     {
       "id": "KIND",
       "name": "種別",
       "label": [
-        { "id": "CHARA", "label": "キャラクター" },
-        { "id": "TITLE", "label": "作品" }
+        {
+          "id": "CHARA",
+          "label": "キャラクター"
+        },
+        {
+          "id": "TITLE",
+          "label": "作品"
+        }
       ]
     },
     {
       "id": "STAGE",
       "name": "登場作品",
       "labels": [
-        { "id": "MMM", "label": "魔法少女まどか☆マギカ" },
-        { "id": "LB", "label": "リトルバスターズ！" }
+        {
+          "id": "MMM",
+          "label": "魔法少女まどか☆マギカ"
+        },
+        {
+          "id": "LB",
+          "label": "リトルバスターズ！"
+        }
       ]
     },
     {
       "id": "GAME_GENRE",
       "name": "ゲームジャンル",
       "labels": [
-        { "id": "RPG", "label": "RPG" },
-        { "id": "ADG", "label": "アドベンチャー" }
+        {
+          "id": "RPG",
+          "label": "RPG"
+        },
+        {
+          "id": "ADG",
+          "label": "アドベンチャー"
+        }
       ]
     },
     {
       "id": "fetish",
       "name": "フェチ",
-      "labels": [{ "id": "ARM", "label": "二の腕" }]
+      "labels": [
+        {
+          "id": "ARM",
+          "label": "二の腕"
+        }
+      ]
     }
   ],
   "labels": [
-    { "id": "ARM", "label": "二の腕" },
-    { "id": "RPG", "label": "RPG" },
-    { "id": "ADG", "label": "アドベンチャー" },
-    { "id": "CHARA", "label": "キャラクター" },
-    { "id": "TITLE", "label": "作品" },
-    { "id": "MMM", "label": "魔法少女まどか☆マギカ" },
-    { "id": "LB", "label": "リトルバスターズ！" }
+    {
+      "id": "ARM",
+      "label": "二の腕"
+    },
+    {
+      "id": "RPG",
+      "label": "RPG"
+    },
+    {
+      "id": "ADG",
+      "label": "アドベンチャー"
+    },
+    {
+      "id": "CHARA",
+      "label": "キャラクター"
+    },
+    {
+      "id": "TITLE",
+      "label": "作品"
+    },
+    {
+      "id": "MMM",
+      "label": "魔法少女まどか☆マギカ"
+    },
+    {
+      "id": "LB",
+      "label": "リトルバスターズ！"
+    }
   ],
   "KANAME": {
     "tag": "鹿目まどか",
@@ -50,12 +119,22 @@
       {
         "id": "KIND",
         "name": "種別",
-        "label": [{ "id": "CHARA", "label": "キャラクター" }]
+        "label": [
+          {
+            "id": "CHARA",
+            "label": "キャラクター"
+          }
+        ]
       },
       {
         "id": "STAGE",
         "name": "登場作品",
-        "labels": [{ "id": "MMM", "label": "魔法少女まどか☆マギカ" }]
+        "labels": [
+          {
+            "id": "MMM",
+            "label": "魔法少女まどか☆マギカ"
+          }
+        ]
       }
     ]
   }
